@@ -1,0 +1,8 @@
+Flask
+flask-cors
+google-generativeai
+yfinance
+tradingview-ta
+tefas-crawler
+gunicorn
+python-dotenv
