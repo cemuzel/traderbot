@@ -1,9 +1,11 @@
 import os
 from flask import Flask, request, jsonify
+from flask_cors import CORS  # Yeni ekledik
 import google.generativeai as genai
 import yfinance as yf
 
 app = Flask(__name__)
+CORS(app) # Tüm sitelerden gelen isteklere izin ver (Kendi siten erişebilsin diye)
 
 # API Anahtarını Render'ın ayarlarından alacak
 GENAI_API_KEY = os.environ.get("GOOGLE_API_KEY")
@@ -11,28 +13,32 @@ genai.configure(api_key=GENAI_API_KEY)
 
 @app.route('/')
 def home():
-    return "Borsa Botu Calisiyor! Analiz icin: /analiz?hisse=THYAO.IS"
+    return "Borsa Botu Calisiyor! Analiz icin endpoint: /analiz"
 
 @app.route('/analiz')
 def analiz_et():
-    symbol = request.args.get('hisse', 'THYAO.IS') # Varsayılan THYAO
+    symbol = request.args.get('hisse', 'THYAO.IS') 
     
     try:
         # 1. Hisseyi Yfinance'dan Çek
         stock = yf.Ticker(symbol)
         hist = stock.history(period="1mo")
+        
+        if hist.empty:
+             return jsonify({"hata": "Veri bulunamadı. Hisse kodunu kontrol et (Örn: GARAN.IS)"}), 400
+
         son_fiyat = hist['Close'].iloc[-1]
         
         # 2. Gemini İçin Veri Hazırla
         prompt = f"""
-        Sen bir finans uzmanısın. Şu teknik verilere bak:
+        Sen profesyonel bir borsa uzmanısın. 
         Hisse: {symbol}
         Son Fiyat: {son_fiyat:.2f}
-        Son 1 aylık kapanışlar: {hist['Close'].tolist()}
+        Son 1 aylık kapanış trendi: {hist['Close'].tolist()}
         
-        Bu hisse için kısa vadeli bir teknik analiz yap. 
+        Bu verilere dayanarak çok kısa bir teknik analiz yap.
         Yatırım tavsiyesi olmadığını belirterek AL/SAT/BEKLE yönünde görüş bildir.
-        Cevabın Türkçe, kısa ve net olsun.
+        Cevabın HTML formatında değil, düz metin olsun. Türkçe konuş.
         """
         
         # 3. Gemini'ye Sor
@@ -41,12 +47,12 @@ def analiz_et():
         
         return jsonify({
             "hisse": symbol,
-            "fiyat": son_fiyat,
+            "fiyat": f"{son_fiyat:.2f}",
             "analiz": response.text
         })
         
     except Exception as e:
-        return jsonify({"hata": str(e)})
+        return jsonify({"hata": str(e)}), 500
 
 if __name__ == '__main__':
     app.run(debug=True)
