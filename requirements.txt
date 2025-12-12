@@ -1,5 +1,12 @@
+<<<<<<< HEAD
 flask
 gunicorn
 google-generativeai
 yfinance
+=======
+flask
+gunicorn
+google-generativeai
+yfinance
+>>>>>>> f3d89f504bce7d40698263d1febbc2ea0e24b7f5
 flask-cors
