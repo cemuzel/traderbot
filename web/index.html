@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="tr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>AI Trader Bot</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --bg-color: #0f172a;
+            /* Koyu Lacivert */
+            --card-bg: #1e293b;
+            /* Kart Rengi */
+            --accent: #10b981;
+            /* Finans Yeşili */
+            --text-main: #f8fafc;
+            --text-sub: #94a3b8;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Inter', sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        /* Başlık Alanı */
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+            margin-top: 20px;
+        }
+
+        header i {
+            font-size: 2.5rem;
+            color: var(--accent);
+            margin-bottom: 10px;
+        }
+
+        header h1 {
+            font-size: 1.5rem;
+            font-weight: 600;
+            letter-spacing: 1px;
+        }
+
+        header p {
+            color: var(--text-sub);
+            font-size: 0.9rem;
+        }
+
+        /* Ana Kart */
+        .card {
+            background: var(--card-bg);
+            width: 100%;
+            max-width: 400px;
+            border-radius: 20px;
+            padding: 25px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        /* Form Alanı */
+        .input-group {
+            position: relative;
+            margin-bottom: 20px;
+        }
+
+        .input-group i {
+            position: absolute;
+            left: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-sub);
+        }
+
+        input {
+            width: 100%;
+            padding: 15px 15px 15px 45px;
+            background: #0f172a;
+            border: 2px solid #334155;
+            border-radius: 12px;
+            color: white;
+            font-size: 1rem;
+            outline: none;
+            transition: 0.3s;
+        }
+
+        input:focus {
+            border-color: var(--accent);
+        }
+
+        button.analyze-btn {
+            width: 100%;
+            padding: 15px;
+            background: var(--accent);
+            color: #064e3b;
+            border: none;
+            border-radius: 12px;
+            font-weight: 600;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: 0.3s;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+        }
+
+        button.analyze-btn:active {
+            transform: scale(0.98);
+        }
+
+        /* Hazır Butonlar */
+        .quick-picks {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            justify-content: center;
+        }
+
+        .chip {
+            background: #334155;
+            padding: 8px 15px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            cursor: pointer;
+            color: var(--text-sub);
+            transition: 0.2s;
+        }
+
+        .chip:hover {
+            background: var(--accent);
+            color: white;
+        }
+
+        /* Sonuç Alanı */
+        #result-area {
+            display: none;
+            /* Başlangıçta gizli */
+            margin-top: 25px;
+            border-top: 1px solid #334155;
+            padding-top: 20px;
+            animation: fadeIn 0.5s ease;
+        }
+
+        .price-tag {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--accent);
+            margin-bottom: 5px;
+        }
+
+        .analysis-text {
+            font-size: 0.95rem;
+            line-height: 1.6;
+            color: #cbd5e1;
+            background: rgba(0, 0, 0, 0.2);
+            padding: 15px;
+            border-radius: 10px;
+            border-left: 3px solid var(--accent);
+        }
+
+        /* Loading Animasyonu */
+        .loader {
+            display: none;
+            border: 3px solid rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+            border-top: 3px solid var(--accent);
+            width: 24px;
+            height: 24px;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <header>
+        <i class="fa-solid fa-robot"></i>
+        <h1>AI TRADER</h1>
+        <p>Gemini Destekli Analiz Botu</p>
+    </header>
+
+    <div class="card">
+        <div class="quick-picks">
+            <span class="chip" onclick="setSearch('THYAO.IS')">THYAO</span>
+            <span class="chip" onclick="setSearch('GARAN.IS')">GARAN</span>
+            <span class="chip" onclick="setSearch('BTC-USD')">BTC</span>
+            <span class="chip" onclick="setSearch('XAU-USD')">ALTIN</span>
+        </div>
+
+        <div class="input-group">
+            <i class="fa-solid fa-magnifying-glass"></i>
+            <input type="text" id="tickerInput" placeholder="Hisse Kodu (Örn: ASELS.IS)" value="THYAO.IS">
+        </div>
+
+        <button class="analyze-btn" onclick="analizEt()">
+            <span id="btn-text">Yapay Zekaya Sor</span>
+            <div class="loader" id="loader"></div>
+        </button>
+
+        <div id="result-area">
+            <div style="display:flex; justify-content:space-between; align-items:end; margin-bottom:10px;">
+                <span style="color:#94a3b8; font-size:0.9rem;" id="stock-name">THYAO.IS</span>
+                <span style="color:#94a3b8; font-size:0.8rem;">Anlık Fiyat</span>
+            </div>
+            <div class="price-tag" id="price-val">0.00 TL</div>
+
+            <div style="margin-top:20px;">
+                <p style="font-size:0.8rem; color:#94a3b8; margin-bottom:5px;"><i class="fa-solid fa-brain"></i> Gemini
+                    Yorumu:</p>
+                <div class="analysis-text" id="ai-comment">
+                    Analiz yükleniyor...
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // SENİN RENDER ADRESİN (Burası Çok Önemli)
+        const API_URL = "https://traderbot-mwbw.onrender.com/analiz";
+
+        function setSearch(val) {
+            document.getElementById('tickerInput').value = val;
+        }
+
+        async function analizEt() {
+            const input = document.getElementById('tickerInput');
+            const resultArea = document.getElementById('result-area');
+            const loader = document.getElementById('loader');
+            const btnText = document.getElementById('btn-text');
+            const priceVal = document.getElementById('price-val');
+            const aiComment = document.getElementById('ai-comment');
+            const stockName = document.getElementById('stock-name');
+
+            const symbol = input.value.toUpperCase();
+
+            // Animasyonları Başlat
+            btnText.style.display = 'none';
+            loader.style.display = 'block';
+            resultArea.style.display = 'none';
+
+            try {
+                // API'ye İstek At
+                const response = await fetch(`${API_URL}?hisse=${symbol}`);
+                const data = await response.json();
+
+                if (data.hata) {
+                    alert("Hata: " + data.hata);
+                    return;
+                }
+
+                // Verileri Ekrana Yaz
+                stockName.innerText = data.hisse;
+                priceVal.innerText = data.fiyat + " " + (symbol.includes('USD') ? '$' : 'TL');
+                aiComment.innerText = data.analiz;
+
+                // Sonucu Göster
+                resultArea.style.display = 'block';
+
+            } catch (error) {
+                alert("Bağlantı Hatası! Render sunucusu uyuyor olabilir, tekrar deneyin.");
+                console.error(error);
+            } finally {
+                // Yükleme Durumunu Kapat
+                loader.style.display = 'none';
+                btnText.style.display = 'block';
+            }
+        }
+    </script>
+
+</body>
+
+</html>
